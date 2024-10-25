@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./css/main.css">
+    <title>Minimlist chat App</title>
+</head>
+
+<body>
+    <div class="container">
+        <p class="msg">Messages:</p>
+        <div id="messages" class="messages"></div>
+        <form id="msgForm" class="msgForm">
+            <input type="text" placeholder="Send message" class="input" id="inputBox" />
+            <input type="submit" class="btn" value="Send">
+        </form>
+    </div>
+    <script type="text/javascript">
+        const socket = new WebSocket(`ws://localhost:8080`);
+        socket.binaryType = "blob";
+        // Log socket opening and closing
+        socket.addEventListener("open", event => {
+            console.log("Websocket connection opened");
+
+            let list = ["vAD","kiRil","vaNya"]
+            let randomIndex = Math.floor(Math.random() * list.length);
+            let randomElement = list[randomIndex];
+            const name = randomElement
+            const message = {
+                id: Date.now,
+                username: name,
+                message: "",
+                event: 'connection'
+            }
+            socket.send(JSON.stringify(message));
+
+        });
+    
+        socket.addEventListener("close", event => {  
+            
+            console.log('Web Socket Connection Closed');
+        });
+
+        socket.addEventListener('message', event=>{
+            const messageDiv = document.getElementById('messages')
+            const dats = JSON.parse(event.data)
+
+            if(dats.event == 'connection'){
+                 messageDiv.innerHTML +=`<p class="sent">${dats.username} Новый пользователь!</p>`
+            } else if(dats.event == 'close'){
+                 messageDiv.innerHTML +=`<p class="sent">${dats.username} Покинул чат!</p>`
+            } else{
+                 messageDiv.innerHTML +=`<p class="sent">${dats.username}:${dats.message}</p>`
+            }
+        
+        })
+        const form = document.getElementById('msgForm');
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const mesInput = document.getElementById('inputBox')
+            const mes = mesInput.value;
+
+            let list = ["vAD","kiRil","vaNya"]
+            let randomIndex = Math.floor(Math.random() * list.length);
+            let randomElement = list[randomIndex];
+            const name = randomElement
+
+            const message = {
+                id: Date.now,
+                username: name,
+                message: mes,
+                event: 'message'
+            }
+            console.log(message)
+            socket.send(JSON.stringify(message));
+            mesInput.value = ''
+        })
+    </script>
+</body>
+
+</html>
